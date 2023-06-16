@@ -1,7 +1,7 @@
 const Note = require('../models/Note')
 const User = require('../models/User')
 const asyncHandler = require('express-async-handler')
-
+const { ObjectId } = require('mongodb');
 // @desc Get all notes 
 // @route GET /notes
 // @access Private
@@ -43,20 +43,20 @@ const createNewNote = asyncHandler(async (req, res) => {
         return res.status(409).json({ message: 'Duplicate note title' })
     }
 
-    const the_user = await User.findById(user).exec()
-    if (!the_user) {
-        return res.status(400).json({ message: 'User not found' })
-    }
-
     // Create and store the new user 
-    const note = await Note.create({ user: user, title: title, text: text });
-
-    if (note) { // Created 
-        return res.status(201).json({ message: 'New note created' })
-    } else {
-        return res.status(400).json({ message: 'Invalid note data received' })
+    
+    try {
+        const note = await Note.create({ user, title, text });
+      
+        if (note) { // Created
+          return res.status(201).json({ message: 'New note created' });
+        } else {
+          return res.status(400).json({ message: 'Invalid note data received' });
+        }
+    } catch (error) {
+        console.error('Error creating note:', error);
+        return res.status(500).json({ message: 'Internal server error' });
     }
-
 })
 
 // @desc Update a note
